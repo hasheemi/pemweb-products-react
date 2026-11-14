@@ -12,22 +12,38 @@ function App() {
         { id: 5, name: 'Penghapus', price: 'Rp3.000' },
     ]);
 
-    // State Modal
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalType, setModalType] = useState('tambah');
     const [selectedProduct, setSelectedProduct] = useState(null);
 
-    // Handler buka modal
     const openModal = (type, product = null) => {
         setModalType(type);
         setSelectedProduct(product);
         setIsModalOpen(true);
     };
 
+    // handler modal
+    const handleSave = (type, formData, id) => {
+        if (type === 'tambah') {
+            const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+            const newProduct = { id: newId, ...formData };
+
+            // state dan state sebelumnya
+            setProducts([...products, newProduct]);
+        } else if (type === 'edit') {
+            const updatedProducts = products.map(p => (p.id === id ? { ...p, ...formData } : p));
+            setProducts(updatedProducts);
+        }
+    };
+    const handleDelete = id => {
+        const filteredProducts = products.filter(p => p.id !== id);
+        setProducts(filteredProducts);
+    };
+
     return (
         <div className="w-full min-h-screen bg-gray-50 font-sans text-gray-800">
             <main className="w-full px-4 sm:px-6 md:px-8 lg:px-10 py-8">
-                {/* Section Header */}
+                {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 w-full">
                     <div>
                         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
@@ -65,28 +81,36 @@ function App() {
 
                 {/* Product List */}
                 <div className="flex flex-wrap gap-4 w-full">
-                    {products.map(product => (
-                        <Card
-                            key={product.id}
-                            product={product}
-                            // Lempar fungsi ke dalam Card untuk tombol Edit & Hapus
-                            onEdit={() => openModal('edit', product)}
-                            onDelete={() => openModal('hapus', product)}
-                        />
-                    ))}
+                    {products.length > 0 ? (
+                        products.map(product => (
+                            <Card
+                                key={product.id}
+                                product={product}
+                                onEdit={() => openModal('edit', product)}
+                                onDelete={() => openModal('hapus', product)}
+                            />
+                        ))
+                    ) : (
+                        <div className="w-full text-center py-10 text-gray-500">
+                            Tidak ada produk. Silakan tambah produk baru.
+                        </div>
+                    )}
                 </div>
 
                 {/* Footer */}
                 <div className="mt-8 text-left text-sm text-gray-400 w-full">
-                    Menampilkan {products.length} dari {products.length} produk
+                    Menampilkan {products.length} produk
                 </div>
             </main>
 
+            {/* Render Modal */}
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 type={modalType}
                 product={selectedProduct}
+                onSave={handleSave}
+                onDelete={handleDelete}
             />
         </div>
     );

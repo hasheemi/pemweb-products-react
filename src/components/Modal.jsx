@@ -1,8 +1,24 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, AlertTriangle } from 'lucide-react';
 
-function Modal({ isOpen, onClose, type, product }) {
+function Modal({ isOpen, onClose, type, product, onSave, onDelete }) {
+    const [namaProduk, setNamaProduk] = useState('');
+    const [harga, setHarga] = useState('');
+
+    useEffect(() => {
+        if (isOpen) {
+            if (type === 'edit' && product) {
+                setNamaProduk(product.name);
+                setHarga(product.price.replace('Rp', '').replace(/\./g, ''));
+            } else {
+                setNamaProduk('');
+                setHarga('');
+            }
+        }
+    }, [isOpen, type, product]);
+
     if (!isOpen) return null;
+
     const modalConfig = {
         tambah: {
             title: 'Tambah Produk',
@@ -26,10 +42,31 @@ function Modal({ isOpen, onClose, type, product }) {
 
     const config = modalConfig[type];
 
+    // handle submit
+    const handleSubmit = e => {
+        e.preventDefault();
+
+        if (type === 'hapus') {
+            onDelete(product.id);
+            onClose();
+            return;
+        }
+
+        if (!namaProduk || !harga) {
+            alert('Nama dan Harga harus diisi!');
+            return;
+        }
+
+        // format harga
+        const formattedPrice = `Rp${parseInt(harga).toLocaleString('id-ID')}`;
+
+        // Kirim data ke App
+        onSave(type, { name: namaProduk, price: formattedPrice }, product?.id);
+        onClose();
+    };
+
     return (
-        // Overlay Backdrop
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-            {/* Modal Container */}
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="flex items-start justify-between p-5 border-b border-gray-100">
@@ -55,28 +92,23 @@ function Modal({ isOpen, onClose, type, product }) {
                 {/* Body */}
                 <div className="p-5">
                     {type === 'hapus' ? (
-                        // Tampilan Varian Hapus
                         <div className="bg-gray-50 rounded-md p-4 border border-gray-100">
                             <span className="text-xs font-semibold text-gray-400 block mb-1">
-                                ID: {product?.id || '3'}
+                                ID: {product?.id}
                             </span>
-                            <h3 className="text-md font-bold text-gray-800">
-                                {product?.name || 'Spidol'}
-                            </h3>
-                            <p className="text-[#004080] font-semibold">
-                                {product?.price || 'Rp8.000'}
-                            </p>
+                            <h3 className="text-md font-bold text-gray-800">{product?.name}</h3>
+                            <p className="text-[#004080] font-semibold">{product?.price}</p>
                         </div>
                     ) : (
-                        // Tampilan Varian Tambah / Edit (Form)
-                        <form className="space-y-4">
+                        <form id="product-form" onSubmit={handleSubmit} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Nama Produk
                                 </label>
                                 <input
                                     type="text"
-                                    defaultValue={type === 'edit' ? product?.name : ''}
+                                    value={namaProduk}
+                                    onChange={e => setNamaProduk(e.target.value)}
                                     placeholder="Contoh: Pulpen"
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#004080] focus:border-[#004080]"
                                 />
@@ -86,12 +118,9 @@ function Modal({ isOpen, onClose, type, product }) {
                                     Harga (Rp)
                                 </label>
                                 <input
-                                    type="text"
-                                    defaultValue={
-                                        type === 'edit'
-                                            ? product?.price.replace('Rp', '').replace('.', '')
-                                            : ''
-                                    }
+                                    type="number"
+                                    value={harga}
+                                    onChange={e => setHarga(e.target.value)}
                                     placeholder="Contoh: 5000"
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#004080] focus:border-[#004080]"
                                 />
@@ -103,18 +132,20 @@ function Modal({ isOpen, onClose, type, product }) {
                     )}
                 </div>
 
-                {/* Footer (Actions) */}
+                {/* Footer tombol */}
                 <div className="flex items-center justify-end gap-3 p-5 border-t border-gray-100 bg-gray-50/50">
                     <button
+                        type="button"
                         onClick={onClose}
                         className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                     >
                         Batal
                     </button>
+
                     <button
-                        onClick={() => {
-                            onClose();
-                        }}
+                        type={type === 'hapus' ? 'button' : 'submit'}
+                        form={type === 'hapus' ? undefined : 'product-form'}
+                        onClick={type === 'hapus' ? handleSubmit : undefined}
                         className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${config.btnClass}`}
                     >
                         {config.btnText}
