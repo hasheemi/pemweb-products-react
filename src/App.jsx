@@ -1,15 +1,28 @@
 import { useState } from 'react';
 import { Search, Plus } from 'lucide-react';
 import Card from './components/Card';
+import Modal from './components/Modal';
 
 function App() {
-    const products = [
+    const [products, setProducts] = useState([
         { id: 1, name: 'Pulpen', price: 'Rp5.000' },
         { id: 2, name: 'Buku Tulis', price: 'Rp12.000' },
         { id: 3, name: 'Spidol', price: 'Rp8.000' },
         { id: 4, name: 'Penggaris', price: 'Rp6.000' },
         { id: 5, name: 'Penghapus', price: 'Rp3.000' },
-    ];
+    ]);
+
+    // State Modal
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalType, setModalType] = useState('tambah');
+    const [selectedProduct, setSelectedProduct] = useState(null);
+
+    // Handler buka modal
+    const openModal = (type, product = null) => {
+        setModalType(type);
+        setSelectedProduct(product);
+        setIsModalOpen(true);
+    };
 
     return (
         <div className="w-full min-h-screen bg-gray-50 font-sans text-gray-800">
@@ -24,7 +37,10 @@ function App() {
                             Kelola daftar produk dan harga dalam satu tempat.
                         </p>
                     </div>
-                    <button className="flex items-center justify-center gap-2 bg-[#004080] hover:bg-blue-800 text-white px-5 py-2.5 rounded-md text-sm font-medium transition-colors">
+                    <button
+                        onClick={() => openModal('tambah')}
+                        className="flex items-center justify-center gap-2 bg-[#004080] hover:bg-blue-800 text-white px-5 py-2.5 rounded-md text-sm font-medium transition-colors"
+                    >
                         <Plus className="w-4 h-4" />
                         Tambah Produk
                     </button>
@@ -47,17 +63,31 @@ function App() {
                     </span>
                 </div>
 
+                {/* Product List */}
                 <div className="flex flex-wrap gap-4 w-full">
                     {products.map(product => (
-                        <Card key={product.id} product={product} />
+                        <Card
+                            key={product.id}
+                            product={product}
+                            // Lempar fungsi ke dalam Card untuk tombol Edit & Hapus
+                            onEdit={() => openModal('edit', product)}
+                            onDelete={() => openModal('hapus', product)}
+                        />
                     ))}
                 </div>
 
                 {/* Footer */}
                 <div className="mt-8 text-left text-sm text-gray-400 w-full">
-                    Menampilkan 5 dari 5 produk
+                    Menampilkan {products.length} dari {products.length} produk
                 </div>
             </main>
+
+            <Modal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                type={modalType}
+                product={selectedProduct}
+            />
         </div>
     );
 }
