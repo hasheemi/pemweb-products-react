@@ -1,5 +1,7 @@
 import React from 'react';
+import { Link } from 'react-router';
 import { Pencil, Trash2 } from 'lucide-react';
+import { formatPrice } from '../utils/format.js';
 
 function Card({ product, onEdit, onDelete }) {
     return (
@@ -12,13 +14,15 @@ function Card({ product, onEdit, onDelete }) {
                 lg:w-[calc(25%-0.75rem)]
             "
         >
-            <div>
-                <span className="text-xs font-semibold text-gray-400 mb-1 block">
-                    ID: {product.id}
-                </span>
-                <h3 className="text-lg font-bold text-gray-800">{product.name}</h3>
-                <p className="text-[#004080] font-semibold mt-1">{product.price}</p>
-            </div>
+            <Link to={`/detail/${product.id}`}>
+                <div>
+                    <span className="text-xs font-semibold text-gray-400 mb-1 block">
+                        ID: {product.id}
+                    </span>
+                    <h3 className="text-lg font-bold text-gray-800">{product.name}</h3>
+                    <p className="text-[#004080] font-semibold mt-1">{formatPrice(product.price)}</p>
+                </div>
+            </Link>
 
             {/* Action Buttons */}
             <div className="flex gap-2 mt-5">
