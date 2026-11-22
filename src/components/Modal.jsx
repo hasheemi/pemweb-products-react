@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, AlertTriangle } from 'lucide-react';
+import { formatPrice } from '../utils/format.js';
 
 function Modal({ isOpen, onClose, type, product, onSave, onDelete }) {
     const [namaProduk, setNamaProduk] = useState('');
@@ -9,7 +10,7 @@ function Modal({ isOpen, onClose, type, product, onSave, onDelete }) {
         if (isOpen) {
             if (type === 'edit' && product) {
                 setNamaProduk(product.name);
-                setHarga(product.price.replace('Rp', '').replace(/\./g, ''));
+                setHarga(product.price);
             } else {
                 setNamaProduk('');
                 setHarga('');
@@ -57,11 +58,8 @@ function Modal({ isOpen, onClose, type, product, onSave, onDelete }) {
             return;
         }
 
-        // format harga
-        const formattedPrice = `Rp${parseInt(harga).toLocaleString('id-ID')}`;
-
-        // Kirim data ke App
-        onSave(type, { name: namaProduk, price: formattedPrice }, product?.id);
+        // Kirim data ke App (harga dikirim sebagai angka, API menyimpan Int)
+        onSave(type, { name: namaProduk, price: parseInt(harga, 10) }, product?.id);
         onClose();
     };
 
@@ -97,7 +95,7 @@ function Modal({ isOpen, onClose, type, product, onSave, onDelete }) {
                                 ID: {product?.id}
                             </span>
                             <h3 className="text-md font-bold text-gray-800">{product?.name}</h3>
-                            <p className="text-[#004080] font-semibold">{product?.price}</p>
+                            <p className="text-[#004080] font-semibold">{formatPrice(product?.price)}</p>
                         </div>
                     ) : (
                         <form id="product-form" onSubmit={handleSubmit} className="space-y-4">

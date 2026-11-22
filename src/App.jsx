@@ -1,17 +1,11 @@
 import { useState } from 'react';
 import { Search, Plus } from 'lucide-react';
+import { useOutletContext } from 'react-router';
 import Card from './components/Card';
 import Modal from './components/Modal';
 
 function App() {
-    const [products, setProducts] = useState([
-        { id: 1, name: 'Pulpen', price: 'Rp5.000' },
-        { id: 2, name: 'Buku Tulis', price: 'Rp12.000' },
-        { id: 3, name: 'Spidol', price: 'Rp8.000' },
-        { id: 4, name: 'Penggaris', price: 'Rp6.000' },
-        { id: 5, name: 'Penghapus', price: 'Rp3.000' },
-    ]);
-
+    const { products, loading, error, refresh, handleSave, handleDelete } = useOutletContext();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalType, setModalType] = useState('tambah');
     const [selectedProduct, setSelectedProduct] = useState(null);
@@ -20,24 +14,6 @@ function App() {
         setModalType(type);
         setSelectedProduct(product);
         setIsModalOpen(true);
-    };
-
-    // handler modal
-    const handleSave = (type, formData, id) => {
-        if (type === 'tambah') {
-            const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
-            const newProduct = { id: newId, ...formData };
-
-            // state dan state sebelumnya
-            setProducts([...products, newProduct]);
-        } else if (type === 'edit') {
-            const updatedProducts = products.map(p => (p.id === id ? { ...p, ...formData } : p));
-            setProducts(updatedProducts);
-        }
-    };
-    const handleDelete = id => {
-        const filteredProducts = products.filter(p => p.id !== id);
-        setProducts(filteredProducts);
     };
 
     return (
@@ -81,7 +57,21 @@ function App() {
 
                 {/* Product List */}
                 <div className="flex flex-wrap gap-4 w-full">
-                    {products.length > 0 ? (
+                    {loading ? (
+                        <div className="w-full text-center py-10 text-gray-500">
+                            Memuat produk...
+                        </div>
+                    ) : error ? (
+                        <div className="w-full text-center py-10 text-red-500">
+                            Gagal memuat produk: {error}
+                            <button
+                                onClick={refresh}
+                                className="block mx-auto mt-3 px-4 py-2 bg-[#004080] text-white rounded-md text-sm"
+                            >
+                                Coba Lagi
+                            </button>
+                        </div>
+                    ) : products.length > 0 ? (
                         products.map(product => (
                             <Card
                                 key={product.id}
